@@ -12,7 +12,7 @@
     {
       "name": "script-to-motion",
       "source": "./plugins/script-to-motion",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "description": "HyperFrames 로 한국어 나레이션 영상을 만들 때 쓰는 보조 레이어. 한국어 TTS(Piper) 생성과 나레이션↔씬 길이 검사. 파이프라인은 /hyperframes 가 소유한다.",
       "dependencies": [
         {

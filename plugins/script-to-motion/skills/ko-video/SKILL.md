@@ -64,13 +64,20 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/ko-tts.mjs" --project videos/<name>
 사전 준비 (한 번만):
 ```bash
 python3 -m venv .venv && .venv/bin/pip install piper-tts
-# huggingface.co/rhasspy/piper-voices → ko/ko_KR/kss/medium/ko_KR-kss-medium.onnx (61MB)
+# 음성 모델 (61MB) — .onnx 와 .onnx.json 두 개를 나란히 받는다
+mkdir -p voices && curl -L -o voices/ko_KR-kss-medium.onnx \
+  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx
+curl -L -o voices/ko_KR-kss-medium.onnx.json \
+  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
 export PIPER_PYTHON=$PWD/.venv/bin/python
 export PIPER_VOICE=$PWD/voices/ko_KR-kss-medium.onnx
 ```
 
 > ⚠️ 2026-08 기준 Piper 의 한국어 음성은 **`kss/medium` 하나뿐**이다 — 여성 단일 화자, medium 등급.
 > 남성 음성이나 화자 변경이 필요하면 이 경로로는 안 되고 HeyGen 로그인이 필요하다.
+
+> ⚠️ 이 음성 모델은 **CC BY-NC-SA 4.0** 이다 (KSS 데이터셋 조건을 물려받는다).
+> **상업적 용도로는 쓸 수 없다.**
 
 **자막용 단어 타임스탬프**는 `words: []` 로 비워 둔다. 필요하면 whisper 로 채운다:
 ```bash

@@ -70,10 +70,15 @@ claude plugin install script-to-motion@hyperframes-ko --scope local
 ```bash
 python3 -m venv .venv && .venv/bin/pip install piper-tts
 mkdir -p voices && curl -L -o voices/ko_KR-kss-medium.onnx \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/ko/ko_KR/kss/medium/ko_KR-kss-medium.onnx
+  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx
 curl -L -o voices/ko_KR-kss-medium.onnx.json \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/ko/ko_KR/kss/medium/ko_KR-kss-medium.onnx.json
+  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
 ```
+
+음성 모델은 [`voices--v1`](https://github.com/jacob-cha-builder/hyperframes-ko/releases/tag/voices--v1)
+릴리즈에 미러링해 뒀다 — 상류
+[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) 와 **바이트 단위로 동일**하고
+(SHA-256 은 릴리즈 노트에 있다), HuggingFace 를 거치지 않는다.
 
 그 뒤로는 **세션마다 한 줄**이면 된다 (`.venv/` 와 `voices/` 는 gitignore 된다):
 
@@ -83,6 +88,11 @@ source tts-env.sh
 
 > **한국어 음성은 `kss/medium` 하나뿐이다** (2026-08 기준) — 여성 단일 화자, medium 등급.
 > 남성 음성이나 화자 변경이 필요하면 HeyGen 로그인이 필요하다.
+
+> ⚠️ **이 음성 모델은 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 이다**
+> — 학습 데이터인 KSS 데이터셋(Kyubyong Park, 전문 여성 성우)의 조건을 그대로 물려받는다.
+> **이 음성으로 만든 나레이션은 상업적으로 쓸 수 없다.** 상업적 사용이 필요하면 이 경로로는
+> 안 된다. 자세한 범위는 [`NOTICE.md`](NOTICE.md).
 
 > `piper-tts` PyPI 패키지는 [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl)
 > 로 **GPL-3.0** 이다. 이 플러그인은 서브프로세스로 호출만 하므로 MIT 를 유지한다.

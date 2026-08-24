@@ -10,7 +10,7 @@
 //
 // 필요한 것:
 //   piper  — pip install piper-tts  (또는 rhasspy/piper 바이너리)
-//   음성   — huggingface.co/rhasspy/piper-voices  ko/ko_KR/kss/medium
+//   음성   — github.com/jacob-cha-builder/hyperframes-ko  릴리즈 voices--v1
 //   ffprobe — 길이 측정
 
 import { execFileSync } from 'node:child_process';
@@ -60,7 +60,8 @@ const voice = args.voice ?? process.env.PIPER_VOICE;
 if (!voice || !existsSync(voice)) {
   console.error(
     `[FATAL] 한국어 음성 모델을 찾을 수 없습니다${voice ? ` (${voice})` : ''}.\n` +
-      `  받기: huggingface.co/rhasspy/piper-voices → ko/ko_KR/kss/medium/ko_KR-kss-medium.onnx\n` +
+      `  받기: github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx\n` +
+      `        (같은 경로의 .onnx.json 도 함께 받아 나란히 두어야 한다)\n` +
       `  지정: --voice <path.onnx>  또는  PIPER_VOICE=<path.onnx>\n` +
       `  참고: 2026-08 기준 Piper 의 한국어 음성은 kss/medium 하나뿐입니다 (여성 단일 화자).\n`,
   );
