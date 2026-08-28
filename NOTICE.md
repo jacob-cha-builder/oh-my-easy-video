@@ -53,7 +53,7 @@ Apache-2.0 은 **사용 인원이나 조직 규모에 제한을 두지 않는다
 | 동일조건 (SA) | 개작해 재배포하면 같은 라이선스를 걸어야 한다 |
 
 이 리포는 트리에 모델 파일을 담지 않지만, 받기 편하도록
-[`voices--v1`](https://github.com/jacob-cha-builder/hyperframes-ko/releases/tag/voices--v1)
+[`voices--v1`](https://github.com/jacob-cha-builder/oh-my-easy-video/releases/tag/voices--v1)
 릴리즈에 **상류와 바이트 단위로 동일한 사본을 미러링**해 둔다 (SHA-256 은 릴리즈 노트에 있다).
 미러는 재배포일 뿐 라이선스를 바꾸지 않는다 — 위 세 조건이 그대로 적용된다.
 

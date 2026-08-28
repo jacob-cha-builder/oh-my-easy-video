@@ -66,8 +66,8 @@ HyperFrames 는 나레이션 타이밍에 맞춰 화면 요소가 뜨게 만든�
 
 ```bash
 claude plugin marketplace add heygen-com/hyperframes --scope local
-claude plugin marketplace add jacob-cha-builder/hyperframes-ko --scope local
-claude plugin install script-to-motion@hyperframes-ko --scope local
+claude plugin marketplace add jacob-cha-builder/oh-my-easy-video --scope local
+claude plugin install script-to-motion@oh-my-easy-video --scope local
 ```
 
 `core-skills@hyperframes` 가 **의존성으로 자동 설치**된다. 다만 마켓플레이스는 자동 등록되지
@@ -84,12 +84,12 @@ claude plugin install script-to-motion@hyperframes-ko --scope local
 ```bash
 python3 -m venv .venv && .venv/bin/pip install piper-tts
 mkdir -p voices && curl -L -o voices/ko_KR-kss-medium.onnx \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx
 curl -L -o voices/ko_KR-kss-medium.onnx.json \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
 ```
 
-음성 모델은 [`voices--v1`](https://github.com/jacob-cha-builder/hyperframes-ko/releases/tag/voices--v1)
+음성 모델은 [`voices--v1`](https://github.com/jacob-cha-builder/oh-my-easy-video/releases/tag/voices--v1)
 릴리즈에 미러링해 뒀다 — 상류
 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) 와 **바이트 단위로 동일**하고
 (SHA-256 은 릴리즈 노트에 있다), HuggingFace 를 거치지 않는다.

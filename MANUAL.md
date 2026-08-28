@@ -1,4 +1,4 @@
-# 사용 매뉴얼 — hyperframes-ko / script-to-motion
+# 사용 매뉴얼 — oh-my-easy-video / script-to-motion
 
 이 문서는 **사람이 손으로 따라 하는 실전 가이드**다. 역할이 겹치는 다른 두 문서와 이렇게 나뉜다:
 
@@ -46,16 +46,16 @@ Claude에게 이런 식으로 말을 걸면 된다 — 아래는 실제 대화 �
 ```bash
 # 1) HyperFrames 본체 + 이 마켓플레이스 등록
 claude plugin marketplace add heygen-com/hyperframes --scope local
-claude plugin marketplace add jacob-cha-builder/hyperframes-ko --scope local
-claude plugin install script-to-motion@hyperframes-ko --scope local
+claude plugin marketplace add jacob-cha-builder/oh-my-easy-video --scope local
+claude plugin install script-to-motion@oh-my-easy-video --scope local
 # 설치 후 Claude Code 재시작 필수 — 안 하면 "Unknown skill: hyperframes"
 
 # 2) 한국어 TTS(Piper) — 이것도 한 번만
 python3 -m venv .venv && .venv/bin/pip install piper-tts
 mkdir -p voices && curl -L -o voices/ko_KR-kss-medium.onnx \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx
 curl -L -o voices/ko_KR-kss-medium.onnx.json \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
 ```
 
 **세션마다 한 줄** (터미널을 새로 열 때마다):

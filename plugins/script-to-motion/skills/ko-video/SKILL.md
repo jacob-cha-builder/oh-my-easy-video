@@ -137,9 +137,9 @@ whisper 는 **타임스탬프만 신뢰한다.** 받아쓴 텍스트는 오독�
 python3 -m venv .venv && .venv/bin/pip install piper-tts
 # 음성 모델 (61MB) — .onnx 와 .onnx.json 두 개를 나란히 받는다
 mkdir -p voices && curl -L -o voices/ko_KR-kss-medium.onnx \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx
 curl -L -o voices/ko_KR-kss-medium.onnx.json \
-  https://github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
+  https://github.com/jacob-cha-builder/oh-my-easy-video/releases/download/voices--v1/ko_KR-kss-medium.onnx.json
 export PIPER_PYTHON=$PWD/.venv/bin/python
 export PIPER_VOICE=$PWD/voices/ko_KR-kss-medium.onnx
 ```
