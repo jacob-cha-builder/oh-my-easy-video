@@ -173,21 +173,29 @@ whisper 받아쓴 텍스트를 그대로 두고 경고했다. **타임스탬프 
 ```
 plugins/script-to-motion/
 ├── .claude-plugin/plugin.json
-├── skills/ko-video/SKILL.md        # /hyperframes 에 붙는 보조 레이어
+├── skills/
+│   ├── ko-video/SKILL.md           # /hyperframes 에 붙는 보조 레이어 — 한국어 게이트
+│   └── deck-to-video/SKILL.md      # 발표자료(PDF/이미지 덱) → 나레이션 mp4 전용 파이프라인
 ├── references/
 │   ├── korean-narration.md         # 발화 속도 · 조사 · 숫자 · 카피 예산
 │   ├── korean-typography.md        # @font-face 폴백 · keep-all 줄바꿈
 │   ├── korean-prompting.md         # 상류 프롬프트 스켈레톤에 얹는 한국어 델타
 │   └── korean-technical-explainer.md  # 기술 설명 시각화 매핑표 + 참고 사이트 확인법
 ├── hooks/hooks.json                # SCRIPT.md 저장 시 자동 검사
-└── scripts/                        # 의존성 0 (Node 내장 + piper/ffprobe/whisper 서브프로세스)
+└── scripts/                        # 의존성 0 (Node 내장 + piper/ffprobe/whisper/poppler 서브프로세스)
     ├── check-script.mjs            # 게이트 — 상류 산출물을 읽는다
+    ├── deck-to-slides.mjs          # 발표자료(PDF/이미지) → deck/slides/slide-NN.png
     ├── ko-status.mjs               # 진행상태 안내 — 다음 실행 명령을 알려준다
     ├── ko-tts.mjs                  # Piper 어댑터 → audio_meta.json (whisper 단어 타임스탬프 자동 병합)
     ├── narration.mjs               # 한국어 발화 길이 추정
     ├── parse-plan.mjs              # SCRIPT.md / STORYBOARD.md 파서
     └── status.mjs                  # 진행상태 판별 — check-script.mjs · ko-status.mjs 공유
 ```
+
+**발표자료(PPT/Keynote/Slides를 PDF로 내보낸 덱, 또는 슬라이드 이미지 폴더)가 이미 있으면**
+`deck-to-video` 스킬이 그걸 원재료로 슬라이드 인제스트 → 인터뷰 → `SCRIPT.md` 승인 →
+`STORYBOARD.md` 역산까지 담당하고, 그다음부터는 `ko-video`의 한국어 게이트를 그대로 물려받는다.
+PDF 입력에는 `brew install poppler`가 한 번 필요하다.
 
 v0.6.0 까지 쓰던 Remotion 파이프라인과 예제는 `script-to-motion--v1.0.0` 태그에 동결되어 있다
 (`git show script-to-motion--v1.0.0:<path>`). 현재 트리에는 없다.
