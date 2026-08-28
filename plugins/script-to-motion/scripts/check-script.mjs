@@ -12,6 +12,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { estimateSec, suggestDuration, fmtDuration, PAD } from './narration.mjs';
 import { parseScript, parseStoryboard } from './parse-plan.mjs';
+import { detectStatus, fmtNextAction } from './status.mjs';
 
 const RULES = {
   1: '나레이션이 씬 길이에 들어감',
@@ -19,6 +20,7 @@ const RULES = {
   3: '씬 합계 == 목표 길이',
   4: '한국어 조사 처리',
   5: '추정 vs 실측 오차',
+  6: '캡션 동기화용 단어 타임스탬프 존재',
 };
 
 const args = {};
@@ -58,10 +60,15 @@ const durationFor = (line) => {
   return null;
 };
 
+/** audio_meta.json 에서 이 줄에 대응하는 voice 항목 */
+const voiceFor = (line) => {
+  if (!meta?.voices) return null;
+  return meta.voices.find((x) => x.frame === line.frame) ?? meta.voices[line.n - 1] ?? null;
+};
+
 /** audio_meta.json 의 실측 길이 */
 const measuredFor = (line) => {
-  if (!meta?.voices) return null;
-  const v = meta.voices.find((x) => x.frame === line.frame) ?? meta.voices[line.n - 1];
+  const v = voiceFor(line);
   return typeof v?.duration_s === 'number' ? v.duration_s : null;
 };
 
@@ -99,6 +106,16 @@ for (const line of script) {
     fail(2, at,
       `나레이션 ${src} ${spoken.toFixed(2)}초 / 씬 ${d.sec}초 — ${slack.toFixed(2)}초가 빕니다 ` +
       `(최대 ${PAD.max}초). 말이 끝난 뒤 정적이 흐릅니다`);
+  }
+
+  // ── 규칙 6: 캡션 동기화용 단어 타임스탬프 ──
+  // 캡션 없이 가는 프로젝트도 유효하므로 경고만 한다 (차단 안 함).
+  if (meta) {
+    const v = voiceFor(line);
+    if (v && (!Array.isArray(v.words) || v.words.length === 0)) {
+      warn(6, at, '단어 타임스탬프(words[])가 없습니다. 캡션/화면 싱크가 필요하면 ' +
+        'ko-tts.mjs 를 재실행하세요(자동으로 whisper 포함). 캡션 안 쓰면 무시하세요');
+    }
   }
 
   // ── 규칙 4: 조사 처리 ──
@@ -164,7 +181,10 @@ if (warns.length > 0) {
 if (errors.length > 0) {
   console.error(`\n✘ 한국어 나레이션 검사 실패 — ${errors.length}건\n`);
   fmt(errors, '✘');
-  console.error(`\n대본을 고치기 전에는 오디오 생성(Step 3.1)으로 넘어가지 마세요.\n`);
-  process.exit(1);
+  console.error(`\n대본을 고치기 전에는 오디오 생성(Step 3.1)으로 넘어가지 마세요.`);
 }
-process.exit(0);
+
+const status = detectStatus(dir);
+console.error(fmtNextAction(status));
+
+process.exit(errors.length > 0 ? 1 : 0);

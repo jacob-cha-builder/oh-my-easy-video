@@ -1,10 +1,12 @@
 # script-to-motion — HyperFrames 한국어 레이어
 
 [HyperFrames](https://github.com/heygen-com/hyperframes) 로 **한국어 나레이션 영상**을 만들 때
-생기는 두 가지 구멍을 메우는 Claude Code 플러그인.
+생기는 구멍들을 메우는 Claude Code 플러그인.
 
 **파이프라인을 소유하지 않는다.** 인터뷰·스토리보드·HTML 스케치 보드·디자인 프리셋·모션·
 레지스트리 176종·렌더는 전부 HyperFrames 가 owner 다. 이 플러그인은 그 위에 얇게 얹힌다.
+
+> 처음부터 끝까지 실제 명령·실제 출력으로 따라 하려면 **[`MANUAL.md`](MANUAL.md)** 를 봐라.
 
 ## 왜 필요한가
 
@@ -21,6 +23,13 @@
 오디오 단계에서야 나온다. 영어권 작성자는 wpm 감각으로 대본이 컷에 맞는지 짐작하지만
 **한국어는 그 감각이 전이되지 않는다.** 대본이 길면 오디오를 만든 뒤에야 알게 된다.
 
+### 3. 화면 리빌 타이밍이 단어 타임스탬프에 전적으로 의존한다
+
+HyperFrames 는 나레이션 타이밍에 맞춰 화면 요소가 뜨게 만든다(VO-paced reveal) — 이게
+공짜로 되는 이유는 TTS 가 단어 단위 타임스탬프를 같이 주기 때문이다. 한국어 TTS(Piper)는
+그걸 기본 제공하지 않으므로, 채워주지 않으면 **한국어 영상만 이 메커니즘이 꺼진 채로**
+만들어진다.
+
 ## 무엇을 하는가
 
 ```
@@ -28,12 +37,16 @@
                                         │
                               ① check-script   추정 기반 사전 검사
                                         │
-                              ② ko-tts        한국어 TTS (audio.mjs 대신)
+                              ② ko-tts        한국어 TTS + 단어 타임스탬프 (audio.mjs 대신)
                                         │
                               ③ check-script   실측 기반 재검사
                                         │
-                                  Step 4 이후 (상류 그대로)
+                                  Step 4 이후 (상류 그대로 — 기술 설명이면
+                                                references/korean-technical-explainer.md 참고)
 ```
+
+`node ko-status.mjs --project <name>` 는 위 단계 중 지금 어디에 있고 다음에 뭘 실행해야
+하는지 아무 때나 알려준다. `skills/ko-video/SKILL.md` 의 체크리스트가 이 순서를 그대로 따른다.
 
 `ko-tts` 는 상류와 **같은 형식의 `audio_meta.json`** 을 만든다. 상류 코드를 고치지 않으므로
 이후 단계가 수정 없이 돈다.
@@ -47,6 +60,7 @@
 | 3 | 프레임 합계 ≈ frontmatter `duration` | 경고 (상류가 advisory) |
 | 4 | 강조 구간 뒤가 조사로 시작하지 않음 | 실패 |
 | 5 | 추정 대비 실측 오차 리포트 | 정보 |
+| 6 | 캡션 동기화용 단어 타임스탬프(`words[]`) 존재 | 경고 |
 
 ## 설치
 
@@ -110,16 +124,31 @@ node "$CLAUDE_PLUGIN_ROOT/scripts/ko-tts.mjs" --project videos/<name>
 
 # 실측 반영 재검사
 node "$CLAUDE_PLUGIN_ROOT/scripts/check-script.mjs" --project videos/<name>
+
+# 아무 때나 — 지금 어디까지 됐고 다음에 뭘 해야 하는지
+node "$CLAUDE_PLUGIN_ROOT/scripts/ko-status.mjs" --project videos/<name>
 ```
 
 `SCRIPT.md` / `STORYBOARD.md` 를 저장하면 훅이 ①을 자동으로 돌린다.
 
-자막용 단어 타임스탬프가 필요하면 whisper 로 채운다. 한글은 상류
-`whisper/normalize.ts` 에서 CJK 붙임 규칙에서 의도적으로 제외되어 공백 분리가 정상이다.
+**자막/화면 싱크용 단어 타임스탬프는 `ko-tts.mjs`가 기본으로 자동 채운다** (whisper를 줄마다
+서브프로세스로 호출). 필요 없으면 `--no-words`로 끈다:
 
 ```bash
-npx hyperframes transcribe videos/<name>/audio/line-01.wav --language ko --json
+node ko-tts.mjs --project videos/<name>                       # 기본: whisper 자동 병합
+node ko-tts.mjs --project videos/<name> --no-words              # 오디오만, whisper 생략(빠름)
 ```
+
+`--no-words`로 껐거나 실패한 줄만 수동으로 채운다 — **`--model`을 반드시 명시**해야 한다
+(CLI 기본값 `small.en`은 비영어 오디오를 조용히 영어로 번역해버린다):
+
+```bash
+npx hyperframes transcribe videos/<name>/audio/line-01.wav --model small --language ko --json
+```
+
+한글은 상류 `whisper/normalize.ts` 에서 CJK 붙임 규칙에서 의도적으로 제외되어 공백 분리가
+정상이다. whisper는 타임스탬프만 신뢰한다 — 받아쓴 텍스트가 원문과 어절 수가 같으면 자동으로
+원문으로 치환하고, 다르면 whisper 텍스트를 그대로 두고 경고한다.
 
 ## 추정 정확도
 
@@ -133,6 +162,12 @@ npx hyperframes transcribe videos/<name>/audio/line-01.wav --language ko --json
 라틴 약어(`AI` → "에이아이")가 섞이면 과소 추정된다. **추정은 근사이고 실측이 우선이다** —
 규칙 5 가 매 실행 오차를 보고하므로, 한쪽으로 쏠리면 `scripts/narration.mjs` 의 상수를 고쳐라.
 
+**단어 타임스탬프(`words[]`) 텍스트 일치율**은 별개 지표다 — 28줄 실측(2026-08-24)에서
+whisper 토큰 수가 원문 어절 수와 정확히 같아 원문으로 치환된 줄은 **12/28 (43%)**, 나머지는
+whisper 받아쓴 텍스트를 그대로 두고 경고했다. **타임스탬프 자체는 28줄 전부 확보됐다** —
+정확한 캡션 텍스트가 필요하면 경고가 뜬 줄만 육안 확인하면 되고, 리빌 타이밍만 필요하면
+경고를 무시해도 된다.
+
 ## 구조
 
 ```
@@ -142,13 +177,16 @@ plugins/script-to-motion/
 ├── references/
 │   ├── korean-narration.md         # 발화 속도 · 조사 · 숫자 · 카피 예산
 │   ├── korean-typography.md        # @font-face 폴백 · keep-all 줄바꿈
-│   └── korean-prompting.md         # 상류 프롬프트 스켈레톤에 얹는 한국어 델타
+│   ├── korean-prompting.md         # 상류 프롬프트 스켈레톤에 얹는 한국어 델타
+│   └── korean-technical-explainer.md  # 기술 설명 시각화 매핑표 + 참고 사이트 확인법
 ├── hooks/hooks.json                # SCRIPT.md 저장 시 자동 검사
-└── scripts/                        # 의존성 0 (Node 내장 + piper/ffprobe 서브프로세스)
+└── scripts/                        # 의존성 0 (Node 내장 + piper/ffprobe/whisper 서브프로세스)
     ├── check-script.mjs            # 게이트 — 상류 산출물을 읽는다
-    ├── ko-tts.mjs                  # Piper 어댑터 → audio_meta.json
+    ├── ko-status.mjs               # 진행상태 안내 — 다음 실행 명령을 알려준다
+    ├── ko-tts.mjs                  # Piper 어댑터 → audio_meta.json (whisper 단어 타임스탬프 자동 병합)
     ├── narration.mjs               # 한국어 발화 길이 추정
-    └── parse-plan.mjs              # SCRIPT.md / STORYBOARD.md 파서
+    ├── parse-plan.mjs              # SCRIPT.md / STORYBOARD.md 파서
+    └── status.mjs                  # 진행상태 판별 — check-script.mjs · ko-status.mjs 공유
 ```
 
 v0.6.0 까지 쓰던 Remotion 파이프라인과 예제는 `script-to-motion--v1.0.0` 태그에 동결되어 있다

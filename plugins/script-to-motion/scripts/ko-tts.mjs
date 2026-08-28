@@ -14,13 +14,18 @@
 //   ffprobe — 길이 측정
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { parseScript } from './parse-plan.mjs';
 
+// --no-words 는 값 없는 불리언 플래그라 --key value 페어 파서와 섞일 수 없다 — 먼저 떼어낸다.
+const rawArgv = process.argv.slice(2);
+const wantWords = !rawArgv.includes('--no-words');
+const argv = rawArgv.filter((a) => a !== '--no-words');
+
 const args = {};
-for (let i = 2; i < process.argv.length; i += 2) {
-  args[process.argv[i]?.replace(/^--/, '')] = process.argv[i + 1];
+for (let i = 0; i < argv.length; i += 2) {
+  args[argv[i]?.replace(/^--/, '')] = argv[i + 1];
 }
 
 const projectDir = resolve(args.project ?? '.');
@@ -85,8 +90,44 @@ const durationOf = (wav) =>
       '-of', 'default=nk=1:nw=1', wav], { encoding: 'utf8' }).trim(),
   );
 
+const whisperModel = args['whisper-model'] ?? 'small';
+
+// wav 옆에 나란히 생기는 transcript.json 은 입력 파일명과 무관하게 고정된 이름이라
+// (npx hyperframes transcribe --help 로 확인: -o/--output 은 srt/vtt 사이드카 전용, 원본 json 경로는 못 바꿈)
+// 다음 줄을 돌리기 전에 즉시 읽어서 옮겨둬야 한다. 실패해도 배치 전체는 계속 진행한다 — 부분 성공 허용.
+//
+// whisper 는 타임스탬프만 신뢰한다 — 받아쓴 텍스트는 오독이 섞인다(실측: "AI로" → "8으로").
+// 토큰 수가 원문의 공백 분리 어절 수와 같으면 원문 어절로 텍스트를 덮어쓴다. 다르면(드묾)
+// whisper 텍스트를 그대로 두고 경고한다 — 이런 줄은 육안으로 words[] 를 확인해야 한다.
+const transcribeWords = (wav, originalText) => {
+  try {
+    execFileSync('npx', ['hyperframes', 'transcribe', wav, '--model', whisperModel, '--language', 'ko', '--optional'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (e) {
+    console.error(`  ⚠ 단어 타임스탬프 실패 (${wav}): ${e.message.split('\n')[0]}`);
+    return [];
+  }
+  const transcriptPath = join(dirname(wav), 'transcript.json');
+  if (!existsSync(transcriptPath)) return [];
+  try {
+    const raw = JSON.parse(readFileSync(transcriptPath, 'utf8'));
+    const tokens = originalText.trim().split(/\s+/);
+    if (raw.length !== tokens.length) {
+      console.error(`  ⚠ ${wav}: whisper 토큰 수(${raw.length})가 원문 어절 수(${tokens.length})와 달라 ` +
+        `받아쓴 텍스트를 그대로 둡니다 — words[] 를 육안으로 확인하세요`);
+    }
+    return raw.map((w, i) => ({ id: `w${i}`, text: raw.length === tokens.length ? tokens[i] : w.text, start: w.start, end: w.end }));
+  } catch {
+    return [];
+  } finally {
+    unlinkSync(transcriptPath); // 다음 줄이 같은 경로에 덮어쓰므로 여기서 걷어간다
+  }
+};
+
 const voices = [];
 let total = 0;
+let wordsFilled = 0;
 
 for (const line of lines) {
   const name = `line-${String(line.n).padStart(2, '0')}.wav`;
@@ -102,17 +143,16 @@ for (const line of lines) {
   }
   const dur = durationOf(wav);
   total += dur;
-  voices.push({ path: `audio/${name}`, duration_s: dur, frame: line.frame, text: line.text, words: [] });
-  console.log(`  ${String(line.n).padStart(2)}. ${dur.toFixed(2)}s  ${line.text.slice(0, 42)}`);
+  const words = wantWords ? transcribeWords(wav, line.text) : [];
+  if (words.length > 0) wordsFilled += 1;
+  voices.push({ path: `audio/${name}`, duration_s: dur, frame: line.frame, text: line.text, words });
+  const tag = wantWords ? (words.length > 0 ? `${words.length}단어` : '단어 없음') : '스킵';
+  console.log(`  ${String(line.n).padStart(2)}. ${dur.toFixed(2)}s  [${tag}]  ${line.text.slice(0, 42)}`);
 }
 
-// words[] 는 비워 둔다 — 단어 타임스탬프는 whisper 로 채운다:
-//   npx hyperframes transcribe <wav> --language ko
-// 한글은 whisper/normalize.ts 에서 의도적으로 CJK 붙임 규칙에서 제외되어 공백 분리가 정상이다.
 writeFileSync(metaPath, JSON.stringify({ voices, total_duration_s: total, sfx: [], bgm: null }, null, 2) + '\n');
 
 console.log(`\n✔ ${voices.length}개 / 총 ${total.toFixed(2)}초`);
+if (wantWords) console.log(`  words[] 확보: ${wordsFilled}/${voices.length}줄 (whisper, --model ${whisperModel})`);
 console.log(`  ${metaPath}`);
-console.log(`\n다음: 단어 타임스탬프가 필요하면 (자막용)`);
-console.log(`  npx hyperframes transcribe ${join(outDir, 'line-01.wav')} --language ko --json`);
-console.log(`그다음: node check-script.mjs --project ${args.project ?? '.'}  (실측 반영 재검사)`);
+console.log(`\n다음: node check-script.mjs --project ${args.project ?? '.'}  (실측 반영 재검사)`);
