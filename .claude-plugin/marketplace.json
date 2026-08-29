@@ -12,7 +12,7 @@
     {
       "name": "oh-my-easy-video",
       "source": "./plugins/oh-my-easy-video",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "description": "한국어로 설명 영상을 만드는 Claude Code 플러그인. /hyperframes 의 plan → 초안 → 빌드 → 최종 리뷰 루프를 그대로 타고, 한국어에서만 생기는 구멍(TTS·단어 타임스탬프·발화 길이·용어 일관성·타이포그래피)을 메운다.",
       "homepage": "https://github.com/jacob-cha-builder/oh-my-easy-video",
       "license": "MIT",

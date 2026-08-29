@@ -30,12 +30,20 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/status.mjs" --project <dir>
 **첫 행동은 `Skill(hyperframes)` 호출이다.** 인터뷰를 직접 흉내내지 마라. `BRIEF.md` 없이
 `STORYBOARD.md` 를 쓰기 시작했다면 이미 틀렸다 — `status.mjs` 가 `no-brief` 로 막는다.
 
-라우터가 run-shape 두 개를 물으면 이렇게 답한다:
+라우터가 run-shape 두 개를 물을 때:
 
-- `flow: companion`
-- `storyboard: yes`
+- **`storyboard`** → **`yes`**. 이게 4패스 리뷰 루프를 켜는 스위치다. 여기만 챙기면 된다.
+- **`flow`** → **사용자가 답하게 두라. 대신 답하지 마라.**
 
-→ `mode: collaborative` 가 도출된다. 이게 4패스 리뷰 루프를 켜는 스위치다.
+> ⚠️ `flow: companion` 은 **`/general-video` 로 고정**된다 (`brief-contract.md` §1). 그러면
+> 라우터의 10행 라우팅 표가 통째로 죽어서 `/pr-to-video`·`/faceless-explainer`·
+> `/product-launch-video`·`/motion-graphics` 같은 전용 워크플로가 절대 안 걸린다.
+> `flow: automation` + `storyboard: yes` 도 똑같이 `mode: collaborative` 를 만들므로,
+> **리뷰 루프를 켜려고 companion 을 고를 필요가 없다.** 사용자가 "같이 만들자"고 명시할
+> 때만 companion 이다.
+
+라우터가 어느 워크플로로 보내든 따라가라. 이 스킬은 그 워크플로 **안에서** 한국어 게이트만
+끼워넣는다 — 워크플로를 대체하지 않는다.
 
 `[negatives]` 에 **`ko-tts`** 를 반드시 넣어라. 안 넣으면 기본 Kokoro TTS 경로로 흘러가는데
 거기엔 한국어가 없다.
@@ -73,6 +81,32 @@ npx hyperframes preview --background     # 이 세션이 죽어도 살아남는�
 ```
 
 `npm run dev` 를 백그라운드로 감싸지 마라 — 세션과 함께 죽는다.
+
+## §2-1 빌드할 때 — 손으로 그리기 전에 이미 있는 걸 찾는다
+
+**가장 흔한 낭비는 상류에 이미 있는 걸 직접 만드는 것이다.** 빌드(§2 3패스) 전에 반드시:
+
+```bash
+npx hyperframes catalog | grep -i <찾는 것>     # 372개 블록·컴포넌트
+npx hyperframes add <이름>                      # 설치
+```
+
+차트·카운트업·캡션·전환·다이어그램·로고·리스트 리빌 — 대부분 이미 있다. 없다는 걸
+**확인한 뒤에** 직접 만들어라.
+
+필요한 순간에만 불러 쓸 상류 도메인 스킬:
+
+| 언제 | 부를 것 |
+|---|---|
+| 블록을 찾거나 설치·배선할 때 | `hyperframes-registry` |
+| 모션을 짤 때 (GSAP 규칙, 전환, 텍스트 효과) | `hyperframes-animation` |
+| 색·타이포·비트 설계 | `hyperframes-creative` |
+| 사진·영상·스크린샷을 다룰 때 | `media-use` |
+| 오디오 믹싱 (페이드, 더킹, BGM) | `hyperframes-audio` |
+| 컴포지션 구조·`data-*`·서브컴포지션 | `hyperframes-core` |
+| `check` / `snapshot` / `render` 명령 | `hyperframes-cli` |
+
+미리 다 부르지 마라 — **그 순간 필요한 것만** 부른다.
 
 ## §3 한국어 게이트 — 오디오 앞뒤로 두 번
 
