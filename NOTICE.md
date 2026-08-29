@@ -1,15 +1,20 @@
 # NOTICE
 
-이 플러그인을 쓸 때 적용되는 라이선스는 넷이고, 서로 다른 대상에 걸린다.
+이 플러그인을 쓸 때 적용되는 라이선스는 여섯이고(TTS 엔진 선택에 따라 둘 중 하나만 해당),
+서로 다른 대상에 걸린다.
 
 | 대상 | 라이선스 | 재배포 여부 |
 |---|---|---|
 | 이 리포의 코드 | MIT (`LICENSE`) | — |
 | [HyperFrames](https://github.com/heygen-com/hyperframes) | Apache-2.0 | 재배포 안 함 (플러그인 의존성으로 설치) |
-| [Piper](https://github.com/OHF-Voice/piper1-gpl) 런타임 | GPL-3.0 | 재배포 안 함 (서브프로세스 호출) |
-| 음성 모델 `ko_KR-kss-medium` | **CC BY-NC-SA 4.0** | 재배포 함 (`voices--v1` 릴리즈 미러) |
+| [Piper](https://github.com/OHF-Voice/piper1-gpl) 런타임 (`ko-tts.mjs`, 기본 엔진) | GPL-3.0 | 재배포 안 함 (서브프로세스 호출) |
+| 음성 모델 `ko_KR-kss-medium` (Piper 용) | **CC BY-NC-SA 4.0** | 재배포 함 (`voices--v1` 릴리즈 미러) |
+| [MeloTTS](https://github.com/myshell-ai/MeloTTS) 런타임 (`melo-tts.mjs`, 대체 엔진) | MIT | 재배포 안 함 (pip 로 설치) |
+| 한국어 체크포인트 [`myshell-ai/MeloTTS-Korean`](https://huggingface.co/myshell-ai/MeloTTS-Korean) | MIT | 재배포 안 함 (최초 합성 시 HuggingFace 에서 직접 받음) |
 
-> ⚠️ 음성 모델이 **비상업(NC)** 이다. 코드의 MIT 와 별개이니 아래 해당 절을 반드시 읽어라.
+> ⚠️ **기본 엔진(Piper)의 음성 모델이 비상업(NC)** 이다. 코드의 MIT 와 별개이니 아래
+> 해당 절을 반드시 읽어라. **상업적 용도가 필요하면 MeloTTS 로 바꿔라** — 코드와
+> 한국어 체크포인트 둘 다 MIT 로 확인됐다(2026-08, GitHub API·HuggingFace 모델 카드).
 
 ## 이 리포의 코드 — MIT
 
@@ -58,8 +63,24 @@ Apache-2.0 은 **사용 인원이나 조직 규모에 제한을 두지 않는다
 미러는 재배포일 뿐 라이선스를 바꾸지 않는다 — 위 세 조건이 그대로 적용된다.
 
 NC 조건은 코드의 MIT 와 무관하다. **코드는 상업적으로 써도 되지만, 이 음성으로 만든 오디오는
-안 된다.** 상업적 사용이 필요하면 MIT 계열의 다른 한국어 TTS 엔진으로 바꿔 끼워야 한다
-(`ko-tts.mjs` 가 `--voice` / `PIPER_VOICE` 로 모델을 받으므로 교체 지점은 한 곳이다).
+안 된다.** 상업적 사용이 필요하면 MIT 계열의 다른 한국어 TTS 엔진으로 바꿔 끼워야 한다 —
+아래 MeloTTS 절이 그 교체 지점이다.
+
+## MeloTTS 런타임 + 한국어 체크포인트 — MIT
+
+Piper 의 상업적 용도 제약을 피하고 싶으면 `scripts/melo-tts.mjs` 를 쓴다
+(`node setup.mjs --engine melo` 로 설치, `ko-tts.mjs` 와 완전히 같은 자리에 대신 쓴다 —
+`references/gates.md` 참고).
+
+- 런타임: [myshell-ai/MeloTTS](https://github.com/myshell-ai/MeloTTS) — 리포의 `LICENSE`
+  와 GitHub API 라이선스 필드 모두 **MIT** ("free for both commercial and non-commercial
+  use", README 명시).
+- 한국어 체크포인트: [myshell-ai/MeloTTS-Korean](https://huggingface.co/myshell-ai/MeloTTS-Korean)
+  (HuggingFace) — 모델 카드 `license: mit`. `melo-tts.mjs` 가 최초 실행 시 HuggingFace 에서
+  직접 받는다(`~/.cache/huggingface`); 이 리포는 체크포인트를 담거나 미러하지 않는다.
+
+둘 다 상업적 용도에 제약이 없다. 단, MeloTTS 는 화자가 하나뿐이라는 점은 Piper 와
+같다 — 다른 화자나 목소리 톤이 필요하면 여전히 HeyGen 로그인이 필요하다.
 
 ## 제휴 관계 없음
 

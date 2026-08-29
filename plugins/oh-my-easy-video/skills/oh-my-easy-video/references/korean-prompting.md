@@ -123,9 +123,12 @@ narration:  "검사는 열네 가지입니다."  ← 읽는 대로. 추정기가
              오디오는 ko-tts.mjs (Piper ko_KR-kss-medium) 로 만들어라.
 ```
 
-> Piper 한국어 음성은 `kss/medium` **하나뿐**이다 — 여성 단일 화자.
-> 남성 음성이나 화자 변경을 프롬프트에 쓰면 이 경로로는 만족시킬 수 없다.
-> 필요하면 HeyGen 로그인이 있어야 한다.
+> Piper 한국어 음성은 `kss/medium` **하나뿐**이다 — 여성 단일 화자, CC BY-NC-SA 4.0
+> (상업적 용도 불가). 남성 음성이나 화자 변경을 프롬프트에 쓰면 이 경로로는 만족시킬 수
+> 없다 — 화자를 바꾸려면 HeyGen 로그인이 있어야 한다. **상업적 용도**가 필요하면 화자는
+> 그대로(역시 단일 화자)지만 라이선스가 더 자유로운 MeloTTS 로 바꿔라 —
+> `[negatives]` 를 `ko-tts.mjs (Piper) 대신 melo-tts.mjs (MeloTTS) 로 만들어라`로
+> 바꿔 쓰면 된다 (`node setup.mjs --engine melo` 최초 1회 필요). 상세: `korean-narration.md`.
 
 ---
 

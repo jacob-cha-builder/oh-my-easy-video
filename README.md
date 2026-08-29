@@ -47,6 +47,16 @@ node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/*/scripts/setup.m
 파이썬 venv · piper · 한국어 음성 모델(63MB)을 `~/.cache/oh-my-easy-video/` 에 설치하고
 체크섬까지 검증한다. 멱등하니 다시 돌려도 안전하다. 설치 후에는 환경변수 없이도 동작한다.
 
+**상업적 용도**가 필요하면 Piper 음성 대신 MeloTTS 를 쓴다(`--engine melo`) — 음성은
+여전히 한국어 화자 하나뿐이지만 라이선스가 더 자유롭다:
+
+```bash
+node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/*/scripts/setup.mjs --engine melo
+```
+
+PyTorch 를 포함하는 별도 venv(`venv-melo`)라 처음엔 몇 분 걸린다. 자세한 트레이드오프는
+[`references/gates.md`](plugins/oh-my-easy-video/skills/oh-my-easy-video/references/gates.md).
+
 ## 왜 한국어 레이어가 필요한가
 
 | | 문제 | 이 플러그인이 하는 일 |
@@ -75,11 +85,13 @@ plugins/oh-my-easy-video/
       gates.md                    검사 규칙 7종 + TTS 상세
       why.md                      근거
   scripts/
-    setup.mjs        TTS 런타임 설치 (멱등)
+    setup.mjs        TTS 런타임 설치 (멱등, --engine piper|melo)
     status.mjs       진행상태 → 다음 할 일
     check-script.mjs 대본 검사 7종
-    ko-tts.mjs       한국어 TTS + 단어 타임스탬프
-    narration.mjs    발화 길이 추정
+    ko-tts.mjs       한국어 TTS(Piper) + 단어 타임스탬프
+    melo-tts.mjs     한국어 TTS(MeloTTS, 상업적 용도) + 단어 타임스탬프 — ko-tts.mjs 대체
+    melo_synth.py    melo-tts.mjs 의 합성 단계 (MeloTTS 파이썬 API 호출)
+    narration.mjs    발화 길이 추정 (Piper 기준 — MeloTTS 는 korean-narration.md 참고)
     parse-plan.mjs   SCRIPT.md / STORYBOARD.md 파서
     deck-to-slides.mjs  PDF/이미지 → 슬라이드 PNG
   hooks/hooks.json   SCRIPT.md/STORYBOARD.md 저장 시 자동 검사
@@ -97,5 +109,6 @@ plugins/oh-my-easy-video/
 
 ## 라이선스
 
-플러그인 코드는 MIT. **음성 모델(`ko_KR-kss-medium`)은 CC BY-NC-SA 4.0 —
-상업적 용도로 쓸 수 없다.** [`NOTICE.md`](NOTICE.md) 참고.
+플러그인 코드는 MIT. **Piper 음성 모델(`ko_KR-kss-medium`)은 CC BY-NC-SA 4.0 —
+상업적 용도로 쓸 수 없다.** 상업적 용도가 필요하면 `melo-tts.mjs`(MeloTTS, 코드·모델 모두 MIT)를
+쓴다. [`NOTICE.md`](NOTICE.md) 참고.

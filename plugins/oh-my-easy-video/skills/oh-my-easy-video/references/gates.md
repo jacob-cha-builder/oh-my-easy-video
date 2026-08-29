@@ -65,18 +65,37 @@ npx hyperframes transcribe <dir>/audio/line-01.wav --model small --language ko -
 "Pace reveals to the narration": *"the agent gets word timings for free"*). Piper 는 이걸
 기본 제공하지 않으므로, 채워주지 않으면 **한국어 영상만 이 메커니즘이 꺼진 채로** 만들어진다.
 
+## `melo-tts.mjs` — MeloTTS 로 대신 만들기 (상업적 용도)
+
+`ko-tts.mjs` 와 완전히 같은 자리에 쓴다 — 입력(`SCRIPT.md`)도 출력(`audio_meta.json` 형식)도
+같다. 다른 건 합성 엔진뿐이다:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/melo-tts.mjs" --project <dir>
+node "${CLAUDE_PLUGIN_ROOT}/scripts/melo-tts.mjs" --project <dir> --no-words
+node "${CLAUDE_PLUGIN_ROOT}/scripts/melo-tts.mjs" --project <dir> --whisper-model medium
+```
+
+단어 타임스탬프 확보 방식(whisper, 원문 어절 치환 휴리스틱, `--model` 필수)은 `ko-tts.mjs`
+와 동일하다. 다른 점 하나: **`narration.mjs` 의 5.5음절/초 추정 상수는 Piper 기준이라
+MeloTTS 에는 안 맞는다** (실측 평균 18~20% 과소추정 — `korean-narration.md` 참고). ①의
+추정 검사를 통과했다고 안심하지 말고 ③ 실측 재검사를 반드시 돌려라.
+
 ## 음성 모델
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs"                 # Piper (기본)
+node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs" --engine melo   # MeloTTS
 ```
 
-파이썬 venv · `piper-tts` · 음성 모델을 받아 sha256 로 검증하고 export 두 줄을 찍는다.
-멱등하다.
+파이썬 venv · TTS 엔진 · (Piper 는) 음성 모델까지 받아 검증하고 준비 상태를 찍는다. 둘 다
+멱등하고, venv 가 분리돼 있어 둘 다 설치해도 서로 간섭하지 않는다.
 
-> ⚠️ 2026-08 기준 Piper 의 한국어 음성은 **`kss/medium` 하나뿐**이다 — 여성 단일 화자.
-> 남성 음성이나 화자 변경이 필요하면 이 경로로는 안 되고 HeyGen 로그인
-> (`npx hyperframes auth login`)이 필요하다.
+> ⚠️ 2026-08 기준 Piper 의 한국어 음성은 **`kss/medium` 하나뿐**이다 — 여성 단일 화자,
+> **CC BY-NC-SA 4.0 (상업적 용도 불가)**. 남성 음성이나 화자 변경이 필요하면 이 경로로는
+> 안 되고 HeyGen 로그인(`npx hyperframes auth login`)이 필요하다. **상업적 용도**만
+> 필요하고 화자는 그대로여도 되면 MeloTTS(`--engine melo`)로 바꿔라 — 역시 한국어 화자는
+> 하나뿐이지만 라이선스가 더 자유롭다.
 
 > ⚠️ 이 음성 모델은 **CC BY-NC-SA 4.0** (KSS 데이터셋 조건을 물려받는다).
 > **상업적 용도로는 쓸 수 없다.** 자세한 건 저장소 `NOTICE.md`.

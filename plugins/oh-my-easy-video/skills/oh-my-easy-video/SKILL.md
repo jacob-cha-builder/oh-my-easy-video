@@ -160,6 +160,19 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs" --project <dir>   # ③ �
   파이썬 venv · piper · 한국어 음성 모델(63MB)을 받아 검증하고 export 두 줄을 찍어준다.
   멱등하니 다시 돌려도 안전하다.
 
+**엔진이 둘이다 — 기본은 Piper(`ko-tts.mjs`), 상업적 용도가 필요하면 MeloTTS(`melo-tts.mjs`).**
+Piper 의 한국어 음성(`ko_KR-kss-medium`)은 CC BY-NC-SA 4.0 이라 상업적 용도로 못 쓴다.
+사용자가 상업적 용도를 언급하거나 남성 음성·다른 화자를 요청하면 MeloTTS 로 바꿔라:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs" --engine melo   # 최초 1회, PyTorch 포함 — 몇 분 걸린다
+node "${CLAUDE_PLUGIN_ROOT}/scripts/melo-tts.mjs"     --project <dir>   # ② 자리에 그대로 대신 쓴다
+```
+
+②만 바뀐다 — ①③ 은 그대로다. 단, **MeloTTS 는 Piper 기준으로 보정된 5.5음절/초 추정
+상수보다 느리게 읽는다** (실측 평균 18~20% 과소추정) — ①의 추정을 곧이곧대로 믿지 말고
+②③ 을 항상 돌려 실측으로 확정하라. 상세: `references/korean-narration.md`.
+
 검사 규칙 7종의 상세는 `references/gates.md`.
 
 ## §4 참조 — 필요할 때만 읽는다
