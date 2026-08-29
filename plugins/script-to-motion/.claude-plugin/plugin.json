@@ -1,9 +1,0 @@
-{
-  "name": "script-to-motion",
-  "description": "HyperFrames 로 한국어 나레이션 영상을 만들 때 쓰는 보조 레이어. 발표자료(PDF/이미지 덱) 인제스트, 한국어 TTS(Piper)+단어 타임스탬프 생성, 나레이션↔씬 길이 검사, 진행상태 안내, 기술 설명 시각화 가이드. 파이프라인은 /hyperframes 가 소유한다.",
-  "version": "1.5.0",
-  "author": {
-    "name": "jacob"
-  },
-  "license": "MIT"
-}

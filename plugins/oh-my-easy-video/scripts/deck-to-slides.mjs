@@ -11,7 +11,7 @@
 // PDF는 poppler(pdftoppm)로 200dpi PNG로 래스터화한다. 이미지 폴더는 파일명 순서대로
 // slide-01.png... 로 정규화해 복사한다. 치수는 ffprobe로 읽는다(ko-tts.mjs와 동일 도구).
 //
-// skills/deck-to-video/SKILL.md 의 Step 0.
+// skills/oh-my-easy-video/references/deck-ingest.md 의 0단계.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, copyFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
@@ -103,4 +103,4 @@ writeFileSync(manifestPath, JSON.stringify({ source: args.source, slides }, null
 
 console.log(`✔ 슬라이드 ${slides.length}장 → ${outDir}`);
 console.log(`  ${manifestPath}`);
-console.log(`\n다음: skills/deck-to-video/SKILL.md 를 따라 각 슬라이드를 보고 인터뷰 → SCRIPT.md 초안을 진행하세요.`);
+console.log(`\n다음: skills/oh-my-easy-video/references/deck-ingest.md 를 따라 슬라이드를 분류한 뒤 /hyperframes 인터뷰로 넘어가세요.`);

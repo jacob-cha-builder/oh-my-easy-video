@@ -6,12 +6,8 @@ out/
 # 내부 작업 기록 — 계획서·증거 파일은 로컬에만 둔다
 .lazycc/
 
-# 한국어 TTS 런타임 — 크고 재생성 가능하다 (README 의 설치 절 참고)
+# 한국어 TTS 런타임 — setup.mjs 가 ~/.cache/oh-my-easy-video 에 설치한다.
+# 아래는 구버전이 저장소 안에 두던 위치라 남겨둔다 (있으면 커밋되지 않게).
 .venv/
 voices/
-
-# HyperFrames 생성물
-videos/*/renders/
-videos/*/snapshots/
-videos/*/.thumbnails/
-videos/*/.waveform-cache/
+tts-env.sh

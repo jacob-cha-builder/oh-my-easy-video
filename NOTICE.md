@@ -14,7 +14,7 @@
 ## 이 리포의 코드 — MIT
 
 `LICENSE` 의 MIT 는 **이 리포지터리의 코드에만** 적용된다 —
-플러그인(`plugins/script-to-motion/`), 스크립트, 문서.
+플러그인(`plugins/oh-my-easy-video/`), 스크립트, 문서.
 
 ## HyperFrames — Apache-2.0
 
@@ -71,4 +71,4 @@ NC 조건은 코드의 MIT 와 무관하다. **코드는 상업적으로 써도 
 v0.6.0 까지 이 플러그인은 [Remotion](https://remotion.dev) 을 대상 렌더러로 삼았고,
 이 문서도 Remotion 라이선스를 고지했다. **v1.0.0 부터 Remotion 을 쓰지 않으므로
 그 라이선스는 이 플러그인에 적용되지 않는다** — 조직 규모에 따른 제약도 마찬가지다.
-당시 구현은 `script-to-motion--v1.0.0` 태그에 동결되어 있다.
+당시 구현은 `script-to-motion--v1.0.0` 태그에 동결되어 있다 (플러그인 이름이 바뀌기 전이다).

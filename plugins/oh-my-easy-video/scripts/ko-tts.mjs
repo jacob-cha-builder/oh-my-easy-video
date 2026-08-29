@@ -10,11 +10,12 @@
 //
 // 필요한 것:
 //   piper  — pip install piper-tts  (또는 rhasspy/piper 바이너리)
-//   음성   — github.com/jacob-cha-builder/hyperframes-ko  릴리즈 voices--v1
+//   음성   — github.com/jacob-cha-builder/oh-my-easy-video  릴리즈 voices--v1
 //   ffprobe — 길이 측정
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { parseScript } from './parse-plan.mjs';
 
@@ -38,11 +39,17 @@ if (!existsSync(scriptPath)) {
   process.exit(2);
 }
 
-// ── piper 찾기 ───────────────────────────────────────────────────────────────
+// ── piper / 음성 모델 찾기 ───────────────────────────────────────────────────
+// setup.mjs 가 설치하는 기본 위치. env 가 없어도 여기를 보므로 설치 후 바로 돈다.
+const CACHE = join(homedir(), '.cache', 'oh-my-easy-video');
+const SETUP_HINT = `  설치: node "\${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs"`;
+
 const findPiper = () => {
   if (args.piper) return { cmd: args.piper, pre: [] };
   if (process.env.PIPER_BIN) return { cmd: process.env.PIPER_BIN, pre: [] };
   if (process.env.PIPER_PYTHON) return { cmd: process.env.PIPER_PYTHON, pre: ['-m', 'piper'] };
+  const cached = join(CACHE, 'venv', 'bin', 'python');
+  if (existsSync(cached)) return { cmd: cached, pre: ['-m', 'piper'] };
   try {
     execFileSync('which', ['piper'], { stdio: 'pipe' });
     return { cmd: 'piper', pre: [] };
@@ -51,23 +58,29 @@ const findPiper = () => {
   }
 };
 
+const findVoice = () => {
+  if (args.voice) return args.voice;
+  if (process.env.PIPER_VOICE) return process.env.PIPER_VOICE;
+  const cached = join(CACHE, 'voices', 'ko_KR-kss-medium.onnx');
+  return existsSync(cached) ? cached : null;
+};
+
 const piper = findPiper();
 if (!piper) {
   console.error(
     `[FATAL] piper 를 찾을 수 없습니다.\n` +
-      `  설치:  python3 -m venv .venv && .venv/bin/pip install piper-tts\n` +
-      `  지정:  --piper <실행파일>  또는  PIPER_PYTHON=<venv>/bin/python\n`,
+      `${SETUP_HINT}\n` +
+      `  또는 직접 지정: --piper <실행파일>  /  PIPER_PYTHON=<venv>/bin/python\n`,
   );
   process.exit(2);
 }
 
-const voice = args.voice ?? process.env.PIPER_VOICE;
+const voice = findVoice();
 if (!voice || !existsSync(voice)) {
   console.error(
     `[FATAL] 한국어 음성 모델을 찾을 수 없습니다${voice ? ` (${voice})` : ''}.\n` +
-      `  받기: github.com/jacob-cha-builder/hyperframes-ko/releases/download/voices--v1/ko_KR-kss-medium.onnx\n` +
-      `        (같은 경로의 .onnx.json 도 함께 받아 나란히 두어야 한다)\n` +
-      `  지정: --voice <path.onnx>  또는  PIPER_VOICE=<path.onnx>\n` +
+      `${SETUP_HINT}\n` +
+      `  또는 직접 지정: --voice <path.onnx>  /  PIPER_VOICE=<path.onnx>\n` +
       `  참고: 2026-08 기준 Piper 의 한국어 음성은 kss/medium 하나뿐입니다 (여성 단일 화자).\n`,
   );
   process.exit(2);

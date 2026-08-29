@@ -1,6 +1,6 @@
 {
   "name": "oh-my-easy-video",
-  "description": "HyperFrames 영상 제작의 한국어 대본 레이어",
+  "description": "HyperFrames 영상 제작의 한국어 레이어",
   "owner": {
     "name": "jacob-cha-builder",
     "url": "https://github.com/jacob-cha-builder"
@@ -10,10 +10,22 @@
   ],
   "plugins": [
     {
-      "name": "script-to-motion",
-      "source": "./plugins/script-to-motion",
-      "version": "1.5.0",
-      "description": "HyperFrames 로 한국어 나레이션 영상을 만들 때 쓰는 보조 레이어. 발표자료(PDF/이미지 덱) 인제스트, 한국어 TTS(Piper)+단어 타임스탬프 생성, 나레이션↔씬 길이 검사, 진행상태 안내, 기술 설명 시각화 가이드. 파이프라인은 /hyperframes 가 소유한다.",
+      "name": "oh-my-easy-video",
+      "source": "./plugins/oh-my-easy-video",
+      "version": "2.0.0",
+      "description": "한국어로 설명 영상을 만드는 Claude Code 플러그인. /hyperframes 의 plan → 초안 → 빌드 → 최종 리뷰 루프를 그대로 타고, 한국어에서만 생기는 구멍(TTS·단어 타임스탬프·발화 길이·용어 일관성·타이포그래피)을 메운다.",
+      "homepage": "https://github.com/jacob-cha-builder/oh-my-easy-video",
+      "license": "MIT",
+      "keywords": [
+        "korean",
+        "video",
+        "hyperframes",
+        "tts",
+        "explainer"
+      ],
+      "skills": [
+        "./skills/oh-my-easy-video"
+      ],
       "dependencies": [
         {
           "name": "core-skills",
