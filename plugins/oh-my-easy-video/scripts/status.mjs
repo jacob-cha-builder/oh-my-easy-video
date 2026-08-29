@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 
 const ktts = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/ko-tts.mjs" --project ${dir}`;
 const kcheck = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs" --project ${dir}`;
+const kcues = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/cues.mjs" --project ${dir}`;
 
 /**
  * review-loop.md §2 초안 패스를 건너뛰었는지 본다.
@@ -58,7 +59,8 @@ export const detectStatus = (dir) => {
       state: 'no-brief',
       nextAction:
         'BRIEF.md 가 없습니다 — /hyperframes 인터뷰를 건너뛴 상태입니다. ' +
-        'Skill(hyperframes) 를 먼저 부르고 flow=companion, storyboard=yes 로 답하세요 (→ mode=collaborative)',
+        'Skill(hyperframes) 를 먼저 부르세요. storyboard 질문에는 yes 로 답하고(4패스 리뷰 루프 스위치), ' +
+        'flow 는 사용자가 답하게 두세요 — companion 은 /general-video 로 고정되어 라우팅이 죽습니다',
       nextCommand: null,
     };
   }
@@ -115,10 +117,14 @@ export const detectStatus = (dir) => {
     existsSync(rendersDir) && readdirSync(rendersDir).some((f) => f.endsWith('.mp4'));
 
   if (!rendered) {
+    // 오디오·단어 타임스탬프가 갖춰졌으면 다음은 비주얼이다. 여기서 큐시트를 안내해야
+    // 에이전트가 audio_meta.json 을 눈으로 읽고 숫자를 손으로 옮기는 짓을 하지 않는다.
     return {
       state: 'ready-to-render',
-      nextAction: 'check-script.mjs 로 실측 재검사 통과 확인 후 /hyperframes 로 Step 4(비주얼) 진행',
-      nextCommand: kcheck(dir),
+      nextAction:
+        '실측 재검사 → 큐시트로 나레이션 시각 확인 → 비주얼 빌드. ' +
+        '빌드 후에는 cues.mjs --check 로 리빌이 단어에 맞았는지 검증하세요',
+      nextCommand: `${kcheck(dir)}\n${kcues(dir)}`,
     };
   }
 

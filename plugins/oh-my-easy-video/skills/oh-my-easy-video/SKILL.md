@@ -1,6 +1,14 @@
 ---
 name: oh-my-easy-video
-description: 한국어 나레이션 설명 영상을 만든다. /hyperframes 의 plan → 초안 → 빌드 → 최종 4패스 리뷰 루프를 그대로 타면서, 한국어에서만 생기는 구멍(TTS·단어 타임스탬프·발화 길이·용어 일관성·타이포그래피)을 메운다. 발표자료(PDF/이미지 덱)로 만들 때도 이 스킬을 쓴다. 한국어 영상 요청이면 무조건 여기서 시작.
+description: >
+  한국어 나레이션이 들어가는 영상을 만들 때 쓴다. "영상 만들어줘", "설명영상",
+  "소개영상", "이 깃헙/PR/발표자료/문서로 영상", "나레이션 넣어서", "자막 넣어서",
+  "덱을 영상으로" 같은 요청이 한국어로 오면 여기서 시작한다 — 결과물 언어가 한국어면
+  주제가 무엇이든(코드·제품·연구·사내공유) 해당한다.
+  /hyperframes 의 plan → 초안(sketch) → 빌드 → 최종 4패스 리뷰 루프를 그대로 타고,
+  한국어에서만 생기는 구멍을 메운다: 한국어 TTS(상류 Kokoro에 한국어 없음), 단어
+  타임스탬프(나레이션↔애니메이션 순서 동기화), 발화 길이 검사, 용어 일관성, 한글 타이포.
+  영어 등 다른 언어 영상이면 쓰지 않는다 — 그건 /hyperframes 가 직접 처리한다.
 ---
 
 # oh-my-easy-video
@@ -82,31 +90,55 @@ npx hyperframes preview --background     # 이 세션이 죽어도 살아남는�
 
 `npm run dev` 를 백그라운드로 감싸지 마라 — 세션과 함께 죽는다.
 
-## §2-1 빌드할 때 — 손으로 그리기 전에 이미 있는 걸 찾는다
+## §2-1 빌드(3패스)할 때
 
-**가장 흔한 낭비는 상류에 이미 있는 걸 직접 만드는 것이다.** 빌드(§2 3패스) 전에 반드시:
+**하나. 손으로 그리기 전에 이미 있는 걸 찾는다.**
 
 ```bash
 npx hyperframes catalog | grep -i <찾는 것>     # 372개 블록·컴포넌트
-npx hyperframes add <이름>                      # 설치
+npx hyperframes add <이름>
 ```
 
-차트·카운트업·캡션·전환·다이어그램·로고·리스트 리빌 — 대부분 이미 있다. 없다는 걸
-**확인한 뒤에** 직접 만들어라.
+차트·카운트업·캡션·전환·다이어그램·리스트 리빌 — 대부분 이미 있다. 없다는 걸 **확인한
+뒤에** 직접 만들어라.
 
-필요한 순간에만 불러 쓸 상류 도메인 스킬:
+**둘. 어느 도메인 스킬을 부를지는 라우터가 안다.** `hyperframes/SKILL.md` **§5 표**를 보라
+(모션·색·미디어·오디오·구조·CLI·레지스트리 + creator-edit 조합 행까지 있다). 여기 옮겨
+적지 않는다. 미리 다 부르지 말고 **그 순간 필요한 것만** 부른다.
 
-| 언제 | 부를 것 |
-|---|---|
-| 블록을 찾거나 설치·배선할 때 | `hyperframes-registry` |
-| 모션을 짤 때 (GSAP 규칙, 전환, 텍스트 효과) | `hyperframes-animation` |
-| 색·타이포·비트 설계 | `hyperframes-creative` |
-| 사진·영상·스크린샷을 다룰 때 | `media-use` |
-| 오디오 믹싱 (페이드, 더킹, BGM) | `hyperframes-audio` |
-| 컴포지션 구조·`data-*`·서브컴포지션 | `hyperframes-core` |
-| `check` / `snapshot` / `render` 명령 | `hyperframes-cli` |
+**셋. 나레이션과 애니메이션 순서를 숫자로 맞춘다** — 아래 §2-2.
 
-미리 다 부르지 마라 — **그 순간 필요한 것만** 부른다.
+## §2-2 나레이션 ↔ 애니메이션 동기화 — 추측하지 말고 큐시트를 봐라
+
+상류의 화면 리빌은 단어 타임스탬프에 의존한다 (*"the agent gets word timings for free"*).
+한국어는 `ko-tts.mjs` 가 whisper 로 그걸 채워준다. **채워진 숫자를 눈으로 읽어 손으로 옮겨
+적지 마라** — 오디오를 다시 만들면 전부 조용히 어긋난다.
+
+**빌드 전 — 큐시트를 뽑는다:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cues.mjs" --project <dir>
+```
+
+프레임마다 단어별 **로컬**(프레임 컴포지션용)·**절대**(루트 오디오 배치용) 시각을 찍는다.
+둘을 헷갈리는 게 흔한 실수다 — 프레임 안 타임라인은 0에서 시작한다.
+
+리빌은 **그 내용을 말하는 단어의 시각**에 건다. 문장이 끝난 뒤가 아니라, 그 단어가 나오는
+순간이다. 나레이션이 A→B→C 순서로 말하면 애니메이션도 A→B→C 여야 한다.
+
+**빌드 후 — 실제로 맞았는지 검증한다:**
+
+```bash
+node ~/.claude/skills/hyperframes-animation/scripts/animation-map.mjs <dir> \
+  --out <dir>/.hyperframes/anim-map
+node "${CLAUDE_PLUGIN_ROOT}/scripts/cues.mjs" --project <dir> --check
+```
+
+실제로 도는 타임라인에서 트윈 시각을 뽑아 단어 경계와 대조하고, 0.4초 이상 떨어진 트윈을
+찍어준다. 배경·앰비언트 모션이면 정상이고, **나레이션에 맞춰야 할 리빌이면 버그다.**
+
+오디오를 다시 만들었으면(`ko-tts.mjs` 재실행) **반드시 다시 돌려라** — 길이가 바뀌면
+기존 숫자가 전부 어긋난다. `check` 는 이걸 잡지 못한다.
 
 ## §3 한국어 게이트 — 오디오 앞뒤로 두 번
 
@@ -135,6 +167,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs" --project <dir>   # ③ �
 | 언제 | 읽을 것 |
 |---|---|
 | 대본 문장을 쓸 때 | `references/korean-narration.md` — 발화 속도, 조사, 숫자, 카피 예산 |
+| 나레이션에 리빌을 맞출 때 | §2-2 + `cues.mjs` — 큐시트와 드리프트 검증 |
 | **영어 용어가 나올 때** | `references/korean-terminology.md` — 화면과 음성은 항상 일치해야 한다 |
 | 사용자가 프롬프트를 쓸 때 | `references/korean-prompting.md` |
 | 기술 설명(절차·아키텍처·수치)을 시각화할 때 | `references/korean-technical-explainer.md` |
