@@ -36,11 +36,12 @@ Claude Code 를 재시작한 뒤 한국어 영상 요청을 하면 스킬이 붙
 
 ### 한국어 TTS 준비 (한 번만)
 
-Claude Code 안에서 **"한국어 TTS 설치해줘"** 라고 하면 스킬이 알아서 돌린다.
-직접 돌리려면:
+Claude Code 안에서 **"한국어 TTS 설치해줘"** 라고 하면 스킬이 알아서 돌린다
+(스킬은 `${CLAUDE_PLUGIN_ROOT}` 로 경로를 안다). 셸에서 직접 돌리려면 — 설치 경로에
+버전이 끼어 있으니 글롭으로 잡는 게 편하다:
 
 ```bash
-node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/scripts/setup.mjs
+node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/*/scripts/setup.mjs
 ```
 
 파이썬 venv · piper · 한국어 음성 모델(63MB)을 `~/.cache/oh-my-easy-video/` 에 설치하고

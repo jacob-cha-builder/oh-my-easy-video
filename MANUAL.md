@@ -77,13 +77,14 @@ npx hyperframes preview --background
 
 ## 막혔을 때
 
+Claude 에게 그냥 **"지금 어디까지 됐지?"** 라고 물으면 된다. 셸에서 직접 보려면:
+
 ```bash
-node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/scripts/status.mjs \
+node ~/.claude/plugins/cache/oh-my-easy-video/oh-my-easy-video/*/scripts/status.mjs \
   --project <프로젝트 폴더>
 ```
 
-지금 어느 단계이고 다음에 뭘 해야 하는지 알려준다. Claude 에게 그냥 "지금 어디까지 됐지?"
-라고 물어도 된다.
+지금 어느 단계이고 다음에 뭘 해야 하는지 알려준다.
 
 | 상태 | 뜻 |
 |---|---|
