@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 const ktts = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/ko-tts.mjs" --project ${dir}`;
 const kcheck = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs" --project ${dir}`;
 const kcues = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/cues.mjs" --project ${dir}`;
+const kcaptions = (dir) => `node "\${CLAUDE_PLUGIN_ROOT}/scripts/check-captions.mjs" --project ${dir}`;
 
 /**
  * review-loop.md §2 초안 패스를 건너뛰었는지 본다.
@@ -123,8 +124,9 @@ export const detectStatus = (dir) => {
       state: 'ready-to-render',
       nextAction:
         '실측 재검사 → 큐시트로 나레이션 시각 확인 → 비주얼 빌드. ' +
-        '빌드 후에는 cues.mjs --check 로 리빌이 단어에 맞았는지 검증하세요',
-      nextCommand: `${kcheck(dir)}\n${kcues(dir)}`,
+        '빌드 후에는 cues.mjs --check 로 리빌이 단어에 맞았는지, ' +
+        'check-captions.mjs 로 자막이 문장 단위인지 검증하세요',
+      nextCommand: `${kcheck(dir)}\n${kcues(dir)}\n${kcaptions(dir)}`,
     };
   }
 

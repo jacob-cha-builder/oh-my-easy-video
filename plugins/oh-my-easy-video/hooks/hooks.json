@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "p=$(jq -r '.tool_input.file_path // empty'); case \"$p\" in */SCRIPT.md|*/STORYBOARD.md) node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs\" --project \"$(dirname \"$p\")\" >&2 ;; esac; exit 0"
+            "command": "p=$(jq -r '.tool_input.file_path // empty'); case \"$p\" in */SCRIPT.md|*/STORYBOARD.md) node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs\" --project \"$(dirname \"$p\")\" >&2 ;; */compositions/*.html|*/.hyperframes/caption-skin.html) node \"${CLAUDE_PLUGIN_ROOT}/scripts/check-captions.mjs\" --project \"$(dirname \"$(dirname \"$p\")\")\" >&2 ;; esac; exit 0"
           }
         ]
       }

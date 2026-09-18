@@ -102,6 +102,12 @@ npx hyperframes add <이름>
 차트·카운트업·캡션·전환·다이어그램·리스트 리빌 — 대부분 이미 있다. 없다는 걸 **확인한
 뒤에** 직접 만들어라.
 
+**하나-B. 회사 보고자료·사내 공유용이면 톤을 먼저 합의한다.** "보고자료", "임원 보고",
+"컨설팅 스타일", "너무 발랄하지 않게" 같은 말이 나오면 `references/korean-corporate-tone.md`
+의 결정 루프를 탄다 — BRIEF 앵커 → 프리셋 → 트리트먼트 매핑을 **하나씩 제안하고 확인받는다.**
+프리셋은 모션을 정의하지 않으므로(`FRAME.md`: *"Motion out of scope"*) 모션 수치는
+`references/korean-report-motion.md` 를 따른다.
+
 **둘. 어느 도메인 스킬을 부를지는 라우터가 안다.** `hyperframes/SKILL.md` **§5 표**를 보라
 (모션·색·미디어·오디오·구조·CLI·레지스트리 + creator-edit 조합 행까지 있다). 여기 옮겨
 적지 않는다. 미리 다 부르지 말고 **그 순간 필요한 것만** 부른다.
@@ -179,6 +185,9 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/melo-tts.mjs"     --project <dir>   # ② �
 
 | 언제 | 읽을 것 |
 |---|---|
+| **회사 보고자료·사내 공유 톤일 때** | `references/korean-corporate-tone.md` — 기준 6개, BRIEF 앵커·프리셋·트리트먼트 결정 루프 |
+| **자막을 붙일 때** | `references/korean-captions.md` — 문장 단위 그룹핑, 카라오케 제거 + `check-captions.mjs` |
+| **모션을 입힐 때 (3패스)** | `references/korean-report-motion.md` — 프리셋이 안 덮는 모션 수치 |
 | 대본 문장을 쓸 때 | `references/korean-narration.md` — 발화 속도, 조사, 숫자, 카피 예산 |
 | 나레이션에 리빌을 맞출 때 | §2-2 + `cues.mjs` — 큐시트와 드리프트 검증 |
 | **영어 용어가 나올 때** | `references/korean-terminology.md` — 화면과 음성은 항상 일치해야 한다 |

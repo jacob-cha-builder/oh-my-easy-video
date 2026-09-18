@@ -81,20 +81,24 @@ plugins/oh-my-easy-video/
       korean-typography.md        @font-face, word-break: keep-all
       korean-prompting.md         상류 프롬프트에 얹는 한국어 델타
       korean-technical-explainer.md  기술 설명 시각화 매핑
+      korean-captions.md          자막은 문장 단위 · 카라오케 금지
+      korean-report-motion.md     보고자료 톤 모션 수치 (프리셋이 안 덮는 칸)
+      korean-corporate-tone.md    회사 보고자료 톤 결정 루프
       deck-ingest.md              발표자료를 원재료로 쓸 때
-      gates.md                    검사 규칙 7종 + TTS 상세
+      gates.md                    검사 규칙 7종 + 자막 4종 + TTS 상세
       why.md                      근거
   scripts/
     setup.mjs        TTS 런타임 설치 (멱등, --engine piper|melo)
     status.mjs       진행상태 → 다음 할 일
     check-script.mjs 대본 검사 7종
+    check-captions.mjs 자막 검사 4종 (문장 단위 · 카라오케 잔존)
     ko-tts.mjs       한국어 TTS(Piper) + 단어 타임스탬프
-    melo-tts.mjs     한국어 TTS(MeloTTS, 상업적 용도) + 단어 타임스탬프 — ko-tts.mjs 대체
+    melo-tts.mjs     한국어 TTS(MeloTTS, 상업적 용도, 기본 --speed 1.2) + 단어 타임스탬프 — ko-tts.mjs 대체
     melo_synth.py    melo-tts.mjs 의 합성 단계 (MeloTTS 파이썬 API 호출)
     narration.mjs    발화 길이 추정 (Piper 기준 — MeloTTS 는 korean-narration.md 참고)
     parse-plan.mjs   SCRIPT.md / STORYBOARD.md 파서
     deck-to-slides.mjs  PDF/이미지 → 슬라이드 PNG
-  hooks/hooks.json   SCRIPT.md/STORYBOARD.md 저장 시 자동 검사
+  hooks/hooks.json   SCRIPT.md/STORYBOARD.md · 캡션 HTML 저장 시 자동 검사
 ```
 
 ## 자주 막히는 곳

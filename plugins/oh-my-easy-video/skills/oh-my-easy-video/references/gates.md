@@ -26,6 +26,27 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/check-script.mjs" --project <dir>
 이 스크립트는 `SCRIPT.md`/`STORYBOARD.md` 를 저장할 때마다 훅으로도 자동 실행된다
 (`hooks/hooks.json`).
 
+## `check-captions.mjs` — 자막 검사 규칙 4종
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-captions.mjs" --project <dir>
+node "${CLAUDE_PLUGIN_ROOT}/scripts/check-captions.mjs" --project <dir> --max-chars 24   # 세로형
+```
+
+`compositions/` 와 `.hyperframes/` 에서 캡션 컴포지션을 찾아 CSS 와 `GROUPS` 를 읽는다.
+상류 캡션 프리셋은 영어 쇼츠 문법(잘게 쪼갠 그룹 + 단어별 이동 하이라이트)이라, 한국어
+문장을 읽어야 하는 영상에서는 그대로 두면 문장이 조각난다.
+
+| # | 규칙 | 판정 |
+|---|---|---|
+| 1 | `.is-active`/`.is-spoken` 이 기본과 다른 색·밑줄을 칠하지 않음 | 실패 |
+| 2 | 캡션 단어에 `scale` 트윈 없음 | 실패 |
+| 3 | 그룹이 문장 중간에서 끊기지 않음 | 실패 |
+| 4 | 한 그룹 글자 수 ≤ `--max-chars` (기본 40) | 경고 |
+
+**캡션을 붙인 뒤 렌더 전에 돌린다.** 고치는 법과 실측 근거는 `korean-captions.md`.
+자막 없는 프로젝트면 조용히 통과한다(exit 0).
+
 ## `ko-tts.mjs` — 한국어 나레이션 생성
 
 ```bash

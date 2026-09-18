@@ -8,7 +8,7 @@
 // 라이선스 — Piper 의 ko_KR-kss-medium 은 CC BY-NC-SA 4.0 이라 상업적 용도로 못 쓴다).
 //
 // 사용:
-//   node melo-tts.mjs --project videos/<name> [--speed 1.0] [--whisper-model small] [--no-words]
+//   node melo-tts.mjs --project videos/<name> [--speed 1.2] [--whisper-model small] [--no-words]
 //
 // 필요한 것 (setup.mjs --engine melo 가 설치한다):
 //   ~/.cache/oh-my-easy-video/venv-melo — MeloTTS 전용 파이썬 venv
@@ -60,7 +60,10 @@ if (!existsSync(melodyPy)) {
   process.exit(2);
 }
 
-const speed = args.speed ?? '1.0';
+// 기본 1.2 — MeloTTS 의 1.0 은 4.61음절/초로 느려서(실측) 답답하게 들리고,
+// narration.mjs 의 추정 상수(5.5음절/초, Piper 기준)와도 18~20% 어긋난다.
+// 1.2 는 5.32음절/초로 귀에도 낫고 추정 오차도 같이 줄인다 — korean-narration.md 참고.
+const speed = args.speed ?? '1.2';
 
 console.log('▶ MeloTTS 로 합성 중 (모델 로드에 시간이 걸립니다)...\n');
 let synthOut;
