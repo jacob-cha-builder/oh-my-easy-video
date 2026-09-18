@@ -107,7 +107,31 @@ MeloTTS 에는 안 맞는다** (실측 평균 18~20% 과소추정 — `korean-na
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs"                 # Piper (기본)
 node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs" --engine melo   # MeloTTS
+node "${CLAUDE_PLUGIN_ROOT}/scripts/setup.mjs" --python python3.12   # 파이썬 지정
 ```
+
+### ⚠ 설치 경로가 길면 조용히 깨진다
+
+piper 는 번들 espeak-ng 에 데이터 경로를 넘기는데(`piper/phonemize_espeak.py`),
+espeak-ng 의 경로 버퍼가 **고정 160자**라 긴 경로는 중간에서 잘린다. 그러면
+**설치는 "성공" 하고 합성만 0바이트 wav 로 나온다** — 종료코드도 0이라 한참 뒤
+무음 영상에서야 눈치챈다.
+
+실측 (2026-09-18):
+
+| 설치 경로 | 길이 | 합성 결과 |
+|---|---|---|
+| `~/.cache/oh-my-easy-video` (기본값) | 95자 | 114KB ✔ |
+| 깊은 임시 디렉터리 | 175자 | **0바이트** ✘ (에러가 잘린 경로를 가리킨다: `.../site-packages/pip/phontab`) |
+
+**파이썬 버전은 무관하다** — 3.9.6 과 3.14.7 둘 다 짧은 경로에서 정상 동작한다.
+(처음엔 파이썬 버전 문제로 의심했으나 재현 결과 아니었다.)
+
+`setup.mjs` 는 이제 두 지점에서 잡는다:
+1. 설치 **전** — 경로 길이가 160자를 넘으면 거부하고 짧은 경로를 안내한다.
+2. 설치 **후** — 실제로 한 문장을 합성해 wav 가 1KB 넘는지 확인한다. 안 되면 exit 1.
+
+기본값(`--dir` 없이)을 쓰면 이 문제를 만날 일이 없다.
 
 파이썬 venv · TTS 엔진 · (Piper 는) 음성 모델까지 받아 검증하고 준비 상태를 찍는다. 둘 다
 멱등하고, venv 가 분리돼 있어 둘 다 설치해도 서로 간섭하지 않는다.

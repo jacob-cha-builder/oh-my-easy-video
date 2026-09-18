@@ -3,7 +3,12 @@
 //   node setup.mjs                 # 기본 위치에 Piper 설치 (기본 엔진)
 //   node setup.mjs --engine melo   # MeloTTS 설치 (상업적 용도 가능 — 아래 "엔진 선택" 참고)
 //   node setup.mjs --dir <path>    # 설치 위치를 바꾼다
+//   node setup.mjs --python python3.12   # 쓸 파이썬을 직접 지정 (아래 ⚠ 참고)
 //   node setup.mjs --print-env     # 이미 설치돼 있을 때 export 두 줄만 다시 본다 (Piper 전용)
+//
+// ⚠ 설치 성공 = 합성 성공이 아니다. piper 는 설치가 멀쩡해도 0바이트 wav 를 만들고
+//   종료코드 0 으로 끝나는 실패 모드가 있다(대표적으로 설치 경로가 길 때 — §2 참고).
+//   그래서 이 스크립트는 마지막에 실제로 한 문장을 합성해보고 wav 크기를 확인한다.
 //
 // 설치되는 것 (--engine piper, 기본값):
 //   1. 파이썬 venv + piper-tts        → ~/.cache/oh-my-easy-video/venv
@@ -26,7 +31,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, unlinkSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, renameSync, unlinkSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -75,42 +80,8 @@ if (args['print-env']) {
 say(`설치 위치: ${ROOT}\n`);
 mkdirSync(VOICES, { recursive: true });
 
-// ── 1. 파이썬 venv + piper-tts ──────────────────────────────────────────────
-let piperOk = false;
-if (existsSync(PY)) {
-  try {
-    execFileSync(PY, ['-m', 'piper', '--help'], { stdio: 'pipe' });
-    piperOk = true;
-    say('✓ piper — 이미 설치됨');
-  } catch {
-    say('· venv 는 있는데 piper 가 없습니다. 다시 설치합니다');
-  }
-}
-
-if (!piperOk) {
-  try {
-    execFileSync('python3', ['--version'], { stdio: 'pipe' });
-  } catch {
-    console.error('✘ python3 를 찾을 수 없습니다.\n  macOS: brew install python3');
-    process.exit(1);
-  }
-  if (!existsSync(PY)) {
-    say('· 파이썬 venv 생성 중…');
-    run('python3', ['-m', 'venv', VENV]);
-  }
-  say('· piper-tts 설치 중… (몇 분 걸립니다)');
-  run(PY, ['-m', 'pip', 'install', '--quiet', '--upgrade', 'pip']);
-  run(PY, ['-m', 'pip', 'install', '--quiet', 'piper-tts']);
-  try {
-    execFileSync(PY, ['-m', 'piper', '--help'], { stdio: 'pipe' });
-    say('✓ piper 설치 완료');
-  } catch {
-    console.error('✘ piper 설치는 됐는데 실행되지 않습니다. 위 pip 출력을 확인하세요.');
-    process.exit(1);
-  }
-}
-
-// ── 2. 음성 모델 ────────────────────────────────────────────────────────────
+// ── 1. 음성 모델 ────────────────────────────────────────────────────────────
+// piper 보다 먼저 받는다 — §2 의 합성 스모크 테스트가 이 파일을 쓴다.
 for (const asset of ASSETS) {
   const dest = join(VOICES, asset.name);
 
@@ -140,6 +111,100 @@ for (const asset of ASSETS) {
   }
   renameSync(tmp, dest);
   say(`✓ ${asset.name} — 검증 완료`);
+}
+
+// ── 2. 파이썬 venv + piper-tts ──────────────────────────────────────────────
+//
+// ⚠ `--help` 통과를 설치 성공으로 믿으면 안 된다. piper 는 설치가 멀쩡해도
+// **0바이트 wav 를 만들면서 종료코드 0 으로 끝나는** 실패 모드가 있다. 그러면
+// 사용자는 "설치 완료" 를 보고 나서 한참 뒤 무음 영상에서야 눈치챈다.
+// 그래서 여기서는 실제로 한 문장을 합성해보고 wav 크기를 확인한다.
+//
+// 알려진 원인 하나 — **설치 경로가 길면 깨진다.** piper 가 번들 espeak-ng 에
+// 데이터 경로를 넘기는데(`piper/phonemize_espeak.py`: `_DIR / "espeak-ng-data"`),
+// espeak-ng 의 경로 버퍼가 고정 크기(160자)라 긴 경로는 중간에서 잘린다.
+// 실측 2026-09-18: `~/.cache/oh-my-easy-video`(95자) → 114KB wav ✔ /
+// 175자 경로 → 0바이트, 에러는 잘린 경로를 가리킨다(`.../site-packages/pip/phontab`).
+// 파이썬 버전은 무관하다 (3.9.6 · 3.14.7 둘 다 짧은 경로에서 정상).
+
+const ESPEAK_PATH_LIMIT = 160;
+
+/** 실제로 합성이 되는가. 0바이트 wav 를 걸러내는 것이 이 함수의 존재 이유다. */
+const synthWorks = () => {
+  const probe = join(ROOT, '.probe.wav');
+  try {
+    execFileSync(PY, ['-m', 'piper', '-m', VOICE, '-f', probe], {
+      input: '안녕하세요. 설치 확인용 문장입니다.',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return existsSync(probe) && statSync(probe).size > 1000;
+  } catch {
+    return false;
+  } finally {
+    if (existsSync(probe)) unlinkSync(probe);
+  }
+};
+
+/** espeak 데이터 경로가 버퍼에 들어가는지 — 설치 전에 미리 잡는다. */
+const espeakPathLen = () => {
+  const libs = join(VENV, 'lib');
+  const pyDir = existsSync(libs) ? (readdirSync(libs).find((d) => d.startsWith('python')) ?? 'python3.x') : 'python3.x';
+  return join(VENV, 'lib', pyDir, 'site-packages', 'piper', 'espeak-ng-data', 'phontab').length;
+};
+
+const pyVersion = (py) => {
+  try {
+    return execFileSync(py, ['--version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  } catch {
+    return '?';
+  }
+};
+
+const basePy = args.python && args.python !== true ? String(args.python) : 'python3';
+
+if (existsSync(PY) && synthWorks()) {
+  say(`✓ piper — 이미 설치됨 (${pyVersion(PY)}, 합성 확인됨)`);
+} else {
+  if (existsSync(PY)) say('· venv 는 있는데 합성이 안 됩니다. 다시 만듭니다');
+
+  if (espeakPathLen() > ESPEAK_PATH_LIMIT) {
+    console.error(
+      `✘ 설치 경로가 너무 깁니다 (${espeakPathLen()}자 > ${ESPEAK_PATH_LIMIT}자 한계).\n` +
+        `  piper 가 쓰는 espeak-ng 는 경로 버퍼가 고정이라, 긴 경로에서는 설치가 "성공" 해도\n` +
+        `  합성이 0바이트로 나옵니다.\n\n` +
+        `  현재: ${ROOT}\n` +
+        `  더 짧은 경로로 설치하세요:  node setup.mjs --dir ~/.cache/oh-my-easy-video`,
+    );
+    process.exit(1);
+  }
+
+  try {
+    execFileSync(basePy, ['--version'], { stdio: 'pipe' });
+  } catch {
+    console.error(`✘ ${basePy} 를 찾을 수 없습니다.\n  macOS: brew install python3`);
+    process.exit(1);
+  }
+
+  if (existsSync(VENV)) rmSync(VENV, { recursive: true, force: true });
+  say(`· 파이썬 venv 생성 중… (${basePy}, ${pyVersion(basePy)})`);
+  run(basePy, ['-m', 'venv', VENV]);
+  say('· piper-tts 설치 중… (몇 분 걸립니다)');
+  run(PY, ['-m', 'pip', 'install', '--quiet', '--upgrade', 'pip']);
+  run(PY, ['-m', 'pip', 'install', '--quiet', 'piper-tts']);
+
+  if (!synthWorks()) {
+    console.error(
+      `\n✘ piper 설치는 됐는데 실제 합성이 되지 않습니다 (0바이트 wav).\n` +
+        `  파이썬: ${pyVersion(basePy)}\n` +
+        `  espeak 데이터 경로 길이: ${espeakPathLen()}자 (한계 ${ESPEAK_PATH_LIMIT}자)\n\n` +
+        `  해볼 것:\n` +
+        `    1. 더 짧은 경로:  node setup.mjs --dir ~/.cache/oh-my-easy-video\n` +
+        `    2. 다른 파이썬:   node setup.mjs --python python3.12\n` +
+        `    3. MeloTTS 로 우회: node setup.mjs --engine melo`,
+    );
+    process.exit(1);
+  }
+  say(`✓ piper 설치 완료 (${pyVersion(basePy)}, 합성 확인됨)`);
 }
 
 // ── 3. env ─────────────────────────────────────────────────────────────────
@@ -193,16 +258,19 @@ function setupMelo(root) {
     }
   }
 
+  // Piper 와 달리 MeloTTS 가 최신 파이썬에서 깨진다는 실측은 아직 없다 — 기본은 python3
+  // 그대로 두고, 아래 스모크 테스트가 실패하면 --python 으로 바꿔 끼울 수 있게만 열어둔다.
+  const basePy = args.python && args.python !== true ? String(args.python) : 'python3';
   try {
-    execFileSync('python3', ['--version'], { stdio: 'pipe' });
+    execFileSync(basePy, ['--version'], { stdio: 'pipe' });
   } catch {
-    console.error('✘ python3 를 찾을 수 없습니다.\n  macOS: brew install python3');
+    console.error(`✘ ${basePy} 를 찾을 수 없습니다.\n  macOS: brew install python3`);
     process.exit(1);
   }
 
   if (!existsSync(py)) {
-    say('· 파이썬 venv 생성 중…');
-    run('python3', ['-m', 'venv', venv]);
+    say(`· 파이썬 venv 생성 중… (${basePy})`);
+    run(basePy, ['-m', 'venv', venv]);
   }
 
   // site-packages 경로 — python 버전에 의존하지 않는 방법으로 찾는다.
@@ -242,7 +310,11 @@ function setupMelo(root) {
     if (!out.includes('OK')) throw new Error('smoke test did not print OK');
     say('✓ MeloTTS 설치 완료 (한국어 경로 확인됨)');
   } catch (e) {
-    console.error(`✘ MeloTTS 는 설치됐지만 한국어 경로 확인에 실패했습니다: ${e.message}`);
+    console.error(
+      `✘ MeloTTS 는 설치됐지만 한국어 경로 확인에 실패했습니다: ${e.message}\n` +
+        `  파이썬 버전 문제일 수 있습니다 (현재 ${basePy}). 다른 버전으로 시도해보세요:\n` +
+        `    node setup.mjs --engine melo --python python3.12`,
+    );
     process.exit(1);
   }
 
